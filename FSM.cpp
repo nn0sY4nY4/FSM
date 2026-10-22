@@ -19,6 +19,7 @@ struct Guard {
     Status status = patrol;
     float chaseDistance = 4.f;
     float attackDistance = 1.f;
+	float runDistance = 8.f;
 };
 
 float getDistance(const Character& guard,
@@ -34,11 +35,6 @@ void update(Guard& guard,
     const Character& player) {
     float dist = getDistance(guardCharacter, player);
 
-    if (guardCharacter.HP < player.HP) {
-        guard.status = running;
-        return;
-    }
-
     switch (guard.status) {
     case patrol:
         if (dist <= guard.chaseDistance)
@@ -53,13 +49,16 @@ void update(Guard& guard,
         break;
 
     case attack:
-        if (dist > guard.chaseDistance)
+        if (guardCharacter.HP < player.HP)
+            guard.status = running;
+        else if (dist > guard.chaseDistance)
             guard.status = patrol;
         else if (dist > guard.attackDistance)
             guard.status = chase;
         break;
 
     case running:
+        if (dist >= guard.runDistance)
         guard.status = patrol;
         break;
     }
@@ -82,7 +81,7 @@ int main() {
     Character player{ 0.f, 0.f, 100 };
     Character guardCharacter{ 0.f, 0.f, 100 };
 
-    float distances[] = { 8, 4, 2, 1, 3, 7 };
+    float distances[] = { 8, 4, 2, 1, 3, 7, 9, 10, 5, 3, 1 };
 
     for (float dist : distances) {
         guardCharacter.x = dist;
@@ -91,9 +90,11 @@ int main() {
 
         if (guard.status == attack) {
             player.HP -= 10;
+            guardCharacter.HP -= 13;
 
             if (player.HP < 0)
                 player.HP = 0;
+
         }
 
         cout << "Dist: " << dist
